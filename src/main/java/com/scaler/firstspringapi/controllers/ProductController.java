@@ -1,9 +1,12 @@
 package com.scaler.firstspringapi.controllers;
 
+import com.scaler.firstspringapi.common.AuthCommons;
+import com.scaler.firstspringapi.dtos.UserDto;
 import com.scaler.firstspringapi.exceptions.ProductNotFoundException;
 import com.scaler.firstspringapi.models.Product;
 import com.scaler.firstspringapi.services.ProductService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -22,15 +25,16 @@ import java.util.List;
 public class ProductController {
 
     private ProductService productService;
-    public ProductController(@Qualifier("selfProductService") ProductService productService) {
+    private AuthCommons authCommons;
+    public ProductController(@Qualifier("selfProductService") ProductService productService, AuthCommons authCommons) {
         this.productService = productService;
+        this.authCommons = authCommons;
     }
 
 
     //localhost:8080/products/1
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) throws ProductNotFoundException {
-        Product product = productService.getProductById(id);
         ResponseEntity<Product> responseEntity;
 //        if (product == null) {
 //            responseEntity = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -38,9 +42,6 @@ public class ProductController {
 //        }
 
 //        Product sampleProduct = new Product();
-
-        responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
-        return responseEntity;
 
 //        ResponseEntity<Product> responseEntity = null;
 //        try {
@@ -54,12 +55,20 @@ public class ProductController {
         //Controllers should be as light as possible.
 //        return responseEntity;
         //throw new RuntimeException("Something went wrong");
+//        UserDto userDto = authCommons.validateToken(token);
+//        if(userDto == null){
+//            responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+//            return responseEntity;
+//        }
+        Product product = productService.getProductById(id);
+        responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
+        return responseEntity;
     }
 
     // localhost:8080/products
     @GetMapping()
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public Page<Product> getAllProducts(@RequestParam("pageNumber") int pageNumber, @RequestParam("pageSize") int pageSize) {
+        return productService.getAllProducts(pageNumber,pageSize);
     }
 
     //createProduct
